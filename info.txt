@@ -1,0 +1,12 @@
+{
+	"Name": "Googly Wrinklers",
+	"ID": "Googly Wrinklers",
+	"Author": "paulsy",
+	"Description": "Gives wrinklers moving googly eyes!",
+	"ModVersion": 1.000,
+	"GameVersion": 2.052,
+	"Date": "24/12/2024",
+	"Dependencies": [],
+	"Disabled": 0,
+	"AllowSteamAchievs": 1
+}
