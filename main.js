@@ -1,6 +1,10 @@
 
-var GW;
-var GooglyAssets = ['icon_pipe.png', 'icon_tongue.png', 'icon_moustache.png', 'icon_monocle.png', 'icon_cowboy_hat.png', 'icon_top_hat.png', 'tongue.png', 'cigar.png', 'cowboy_hat.png', 'eyes.png'];
+var GW = {
+	name: 	 'Googly Wrinklers',
+	version: '1.000',
+	debug:	  true,
+};
+var GooglyAssets = ['icon_winkler.png', 'icon_wrinkler.png', 'icon_special.png', 'tongue.png', 'cigar.png', 'cowboy_hat.png', 'eyes.png'];
 /*=====================================================================================
 // RENDERER
 =======================================================================================*/
@@ -10,29 +14,34 @@ class GooglyRenderer {
 			Game.wrinklers[i].inventory 	 = new GooglyInventory();
 			Game.wrinklers[i].particleSystem = new GooglyParticleSystem(500);
 			Game.wrinklers[i].img			 = 'winkler.png';
-			Game.wrinklers[i].skin			 = 'winkler.png';
+			Game.wrinklers[i].skin 			 = 'winkler.png';
 		}
 	}
 	drawWrinklers(ctx, wrinklers) {
-		var selected = 0;
 		for (var i in wrinklers) {
 			let me = wrinklers[i];
 			if (me.phase > 0) {
-				ctx.globalAlpha = me.close;
 				ctx.save();
+				ctx.globalAlpha = me.close;
 				ctx.translate(me.x, me.y);
-				var sw = 100 + 2 * Math.sin(Game.T*0.2 + i*3);
-				var sh = 200 + 5 * Math.sin(Game.T*0.2 - 2 + i*3);
-				if (Game.prefs.fancy)
-				{
-					ctx.translate(0, 30);
-					ctx.rotate(-(me.r) * Math.PI/180);
-					ctx.drawImage(Pic('wrinklerShadow.png'), -sw/2, -10, sw, sh);
-					ctx.rotate( (me.r) * Math.PI/180);
+				// Use delta time of Smooth Render mod to ensure wrinklers wiggle at a the same speed regardless of FPS 
+				if (Game.mods['Smooth Render']) {
+					var sw = 100 + 2 * Math.sin( (Game.T * Game.fpsCoeff) * 0.2 + i*3);
+					var sh = 200 + 5 * Math.sin( (Game.T * Game.fpsCoeff) * 0.2 - 2 + i*3);
+				} else {
+					var sw = 100 + 2 * Math.sin(Game.T * 0.2 + i*3);
+					var sh = 200 + 5 * Math.sin(Game.T * 0.2 - 2 + i*3);
+				}
+				// Wrinkler shadow
+				if (Game.prefs.fancy) {
+					ctx.translate(0,30);
+					ctx.rotate(-(me.r)*Math.PI/180);
+					ctx.drawImage(this.getPic('wrinklerShadow.png'),-sw/2,-10,sw,sh);
+					ctx.rotate((me.r)*Math.PI/180);
 					ctx.translate(0,-30);
 				}
-				ctx.rotate(-(me.r) * Math.PI/180);
-				// Change image if Shiny Wrinkler or seasonal wrinkler
+				ctx.rotate(-(me.r)*Math.PI/180);
+				// Change image if Shiny Wrinkler or Seasonal Wrinkler
 				if (me.type == 1) {
 					me.img = Game.WINKLERS ? 'shinyWinkler.png' : 'shinyWrinkler.png';
 				} else if (Game.season == 'christmas') {
@@ -41,29 +50,36 @@ class GooglyRenderer {
 					me.img = me.skin;
 				}
 				// Draw Wrinkler, cosmetics and particles
-				ctx.drawImage(Pic(me.img), -sw/2, -10, sw, sh);
+				ctx.drawImage(this.getPic(me.img), -sw/2, -10, sw, sh);
 				this.drawCosmetics(ctx, me);
 				me.particleSystem.run(ctx);
 				// Sparkle for Shiny Wrinkler
-				if (me.type == 1 && Math.random() < 0.3 && Game.prefs.particles)
-				{
-					ctx.globalAlpha = Math.random() * 0.65 + 0.1;
-					var s = Math.random() * 30 + 5;
-					ctx.globalCompositeOperation = 'lighter';
-					ctx.drawImage(Pic('glint.png'), -s/2 + Math.random() * 50-25,- s/2 + Math.random() * 200, s, s);
-				}
+				if (me.type == 1) this.drawShine(ctx, 0, 86, 256, 256);
 				ctx.restore();
-				
-				if (Game.prefs.particles && me.phase==2 && Math.random()<0.03)
-				{
+				// Cookie particles
+				if (Game.prefs.particles && me.phase==2 && Math.random()<0.03) {
 					Game.particleAdd(me.x,me.y,Math.random()*4-2,Math.random()*-2-2,Math.random()*0.5+0.5,1,2);
 				}
-				if (me.selected) selected=me;
+				// Eye of the Wrinkler heaveny upgrade
+				if (me.selected == 1 && Game.Has('Eye of the wrinkler')) {
+					this.drawEyeOfWrinkler(ctx, me);
+				}
 			}
 		}
-		if (selected && Game.Has('Eye of the wrinkler')) {
-			this.drawEyeOfWrinkler(ctx, selected);
+	}
+	drawShine(ctx, x, y, width, height) {
+		ctx.save();
+		ctx.translate(x, y);
+		ctx.rotate(Game.T*Math.PI/180);
+		ctx.globalCompositeOperation = 'lighter';
+		ctx.globalAlpha = 0.15;
+		ctx.drawImage(Pic('shineGold.png'), -width/2, -height/2, width, height);
+		if (Math.random() < 0.3 && Game.prefs.particles) {
+			ctx.globalAlpha = Math.random() * 0.65 + 0.1;
+			var s = Math.random() * 30 + 5;
+			ctx.drawImage(Pic('glint.png'), -s/2 + Math.random() * 50-25,- s/2 + Math.random() * 200, s, s);
 		}
+		ctx.restore();
 	}
 	drawCosmetics(ctx, me) {
 		for (let j in me.inventory.slot) {
@@ -76,8 +92,6 @@ class GooglyRenderer {
 		ctx.save();
 		ctx.globalAlpha = me.close;
 
-		// this.translateToWrinkler(ctx, me);
-
 		ctx.save();
 		ctx.globalAlpha = me.close;
 		ctx.translate(obj.x, obj.y);
@@ -86,8 +100,6 @@ class GooglyRenderer {
 			ctx.drawImage(this.getPic(obj.img), -obj.size/2 -this.getWobble(obj, me).x, -obj.size/2 -this.getWobble(obj, me).y, this.getWobble(obj, me).w, this.getWobble(obj, me).h);
 		}
 		ctx.restore();
-
-		ctx.restore();
 		// Spawn particle if object has particle data
 		if (obj.particle && me.close > 0) {
 			// Quick and dirty function declaration to use with the Smooth Render mod
@@ -95,9 +107,9 @@ class GooglyRenderer {
 				// Get particle data
 				let particle = obj.particle;
 				// Set velocity direction to counter wrinkler rotation
-				particle.direction = (me.r - 90) * Math.PI/180;
-				// Create new particle in selected wrinkler
-				me.particleSystem.spawnParticle(new GooglyParticle(me.particleSystem, GW.getPic(obj.particle.img), obj.particle));
+				particle.direction = 0 + ( (me.r - 90) * Math.PI/180 );
+				// Create new particle in selected wrinkler 
+				me.particleSystem.spawnParticle(new GooglyParticle(me.particleSystem, GW.renderer.getPic(obj.particle.img), obj.particle));
 			}
 			// Run at set rate with random offset 
 			if (Game.mods['Smooth Render']) {
@@ -106,6 +118,7 @@ class GooglyRenderer {
 				if (Game.T % obj.particle.rate + Math.floor(Math.random() * (0 - 2) + 2) == 0) createParticle();
 			}
 		}
+		ctx.restore();
 	}
 	drawGooglyEyes(ctx, me, slot) {
 		let obj = me.inventory.slot[slot];
@@ -114,8 +127,6 @@ class GooglyRenderer {
 
 		ctx.save();
 		ctx.globalAlpha = me.close;
-		// this.translateToWrinkler(ctx, me);
-
 		// outline
 		ctx.strokeStyle = obj.outline_color;
 		ctx.lineWidth = 3;
@@ -125,7 +136,6 @@ class GooglyRenderer {
 		ctx.beginPath();
 		ctx.arc( 20, 26, obj.size, 0, 2 * Math.PI);
 		ctx.stroke();
-
 		// outer eye
 		ctx.fillStyle = obj.outer_color;
 		ctx.beginPath();
@@ -137,11 +147,8 @@ class GooglyRenderer {
 		// inner eye
 		ctx.save();
 		ctx.globalAlpha = me.close;
-		// this.translateToWrinkler(ctx, me);
-
 		ctx.translate(-20, 26);
 		ctx.rotate( (Game.T+me.id*10) * Math.PI/180 );
-
 		ctx.fillStyle = obj.inner_color;
 		ctx.beginPath();
 		ctx.arc( obj.size*0.3, 0, obj.size*0.75, 0, 2 * Math.PI);
@@ -151,11 +158,8 @@ class GooglyRenderer {
 		// inner eye
 		ctx.save();
 		ctx.globalAlpha = me.close;
-		// this.translateToWrinkler(ctx, me);
-
 		ctx.translate(20, 26);
 		ctx.rotate( (Game.T+me.id*10) * Math.PI/180 );
-
 		ctx.fillStyle = obj.inner_color;
 		ctx.beginPath();
 		ctx.arc(-obj.size*0.3, 0, obj.size*0.75, 0, 2 * Math.PI);
@@ -201,13 +205,6 @@ class GooglyRenderer {
 	}
 	translateToWrinkler(ctx, me) {
 		ctx.translate(me.x,me.y);
-		if (Game.prefs.fancy) 
-		{
-			ctx.translate(0,30);
-			ctx.rotate(-(me.r)*Math.PI/180);
-			ctx.rotate((me.r)*Math.PI/180);
-			ctx.translate(0,-30);
-		}
 		ctx.rotate(-(me.r)*Math.PI/180);
 	}
 	getPic(what) {
@@ -232,49 +229,129 @@ class GooglyRenderer {
 		};
 		return wob;
 	}
+	inRect(x, y, rect) {
+		// Find out if the point x, y is in the rotated rectangle rect{w, h, r, o} (width, height, rotation in radians, y-origin) (needs to be normalized)
+		// 'I found this somewhere online I guess' - Ortiel
+		var dx = x+Math.sin(-rect.r)*(-(rect.h/2-rect.o)),dy=y+Math.cos(-rect.r)*(-(rect.h/2-rect.o));
+		var h1 = Math.sqrt(dx*dx + dy*dy);
+		var currA = Math.atan2(dy,dx);
+		var newA = currA - rect.r;
+		var x2 = Math.cos(newA) * h1;
+		var y2 = Math.sin(newA) * h1;
+		if (x2 > -0.5 * rect.w && x2 < 0.5 * rect.w && y2 > -0.5 * rect.h && y2 < 0.5 * rect.h) return true;
+		return false;
+	}
 }
 /*=====================================================================================
-// MENU: Wrinkler customization (pass 'this' from GooglyRenderer when declaring)
+// MENU
+---------------------------------------------------------------------------------------
+	Wrinkler customization GUI. Has access to GooglyRenderer properties.
 =======================================================================================*/
 class GooglyMenu extends GooglyRenderer {
-	constructor(renderer) {
+	constructor() {
+		// Apply GooglyRenderer properties to GooglyMenu class
 		super();
-		this.slotIndex = [0, 0, 0, 0, 0];
+		// Array to store slot indexes for cosmetic selectors. slotIndex[5] used to select a wrinkler
+		this.slotIndex = [0, 0, 0, 0, 0, 0];
+		// Inventory to store arrays of cosmetics with their respective slot numbers
+		this.inventory = new GooglyInventory();
+		// Create template wrinkler to apply cosmetics to
 		this.wrinkler = {
 			id: 16, 
-			x: 25, 
-			y: 16, 
+			x: 50, 
+			y: 42, 
 			r: 0, 
 			close: 1,
+			type: 0,
+			size: 100,
+			wobble_x: -0.5,
+			wobble_y: -1,
 			inventory: new GooglyInventory(),
 			particleSystem: new GooglyParticleSystem(100),
 			img: 'winkler.png',
 			skin: 'winkler.png'
 		};
+		this.icon = {
+			img: 'icon_special.png',
+			x: 24,
+			y: 24,
+			w: 48,
+			h: 48,
+			selected: false,
+		};
 	}
-	drawMenu(imgArr) {
+	updateIcon() {
+		if (this.icon.selected && Game.CanClick) {
+			if (Game.Click && Game.lastClickedEl==l('backgroundLeftCanvas')) {
+				this.show();
+				Game.Click = 0;
+			}
+		}
+	}
+	drawIcon(ctx) {
+		let me = this.icon;
+		me.y = ctx.canvas.height - (Game.specialTabs.length*48) - 72;
+		let rect = {
+			w: me.w,
+			h: me.h,
+			r: 0,
+			o: 24
+		};
+
+		if (ctx && this.inRect(Game.mouseX - me.x,Game.mouseY - me.y, rect)) {
+
+			this.icon.selected = true;
+			let r = Math.floor((Game.T*0.5)%360);
+
+			ctx.save();
+			ctx.translate(me.x, me.y);
+			if (Game.prefs.fancy) ctx.rotate((r/360)*Math.PI*2);
+			ctx.globalAlpha = 0.45;
+			ctx.drawImage(Pic('shine.png'), -(me.w+12)/2, -(me.h+12)/2, me.w+16, me.h+16);
+			ctx.restore();
+		} else {
+			this.icon.selected = false;
+		}
+
+		ctx.save();
+		ctx.translate((me.x + (Math.sin(5 + Game.T*0.1)*3)), (me.y - (Math.abs(Math.cos(5 + Game.T*0.1))*6)));
+		ctx.drawImage(this.getPic(this.icon.img), -(me.w)/2, -(me.h)/2, me.w, me.h);
+		ctx.restore();
+	}
+	drawMenu() {
 		if (!l('wrinklerPreview')) return false;
 		let ctx = l('wrinklerPreview').getContext('2d');
 		ctx.clearRect(0, 0, 100, 220);
-		// ctx.drawImage(this.getPic('icon_winkler.png'), 0, 0, 100, 220);
 
-		this.drawWrinklers(ctx, this.wrinkler);
+		let me = Game.wrinklers[0];
 
-		// this.drawObject(ctx, this.wrinkler, 0);
+		/* ctx.save();
+		ctx.globalAlpha = 0.5;
+		ctx.fillStyle = 'hsl(0, 100.00%, 50.00%)';
+		ctx.fillRect(0, 0, 100, 220);
+
+		ctx.globalCompositeOperation = 'destination-atop';
+		ctx.globalAlpha = 1; */
+		ctx.drawImage(
+			this.getPic('icon_winkler.png'), 
+			this.getWobble(this.wrinkler, me).x, 
+			this.getWobble(this.wrinkler, me).y, 
+			this.getWobble(this.wrinkler, me).w, 
+			this.getWobble(this.wrinkler, me).h + 120
+		);
+		// ctx.restore();
+
 		ctx.save();
 		this.translateToWrinkler(ctx, this.wrinkler);
-		this.drawCosmetics(ctx, this.wrinkler, 2)
+		this.drawCosmetics(ctx, this.wrinkler, 2);
+		this.wrinkler.particleSystem.run(ctx);
 		ctx.restore();
-		// this.drawParticles(ctx, [this.wrinkler])
-
-		for (let i in imgArr) {
-			// ctx.drawImage(this.r.getPic(imgArr[i]), 0, 0, 100, 220);
-		}
 	}
 	show() {
+		this.wrinkler.inventory = Game.wrinklers[this.slotIndex[5]].inventory;
 		Game.Prompt(
 			'<id CustomizeYou><h3>'+loc("Customize Wrinklers")+'</h3>'+
-			'<div class="block" style="text-align:center;font-size:11px;">'+loc("Spawn from the Grandmapocalypse. Shape them as you desire.")+'</div>'+
+			'<div class="block" style="text-align:center;font-size:11px;">'+loc("Spawn of the Grandmapocalypse. Shape them as you desire.")+'</div>'+
 			'<div class="block" style="position:relative;">'+
 			'<a style="position:absolute;left:4px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.import();PlaySound(\'snd/tick.mp3\');">'+loc("Import")+'</a>'+
 			'<a style="position:absolute;right:0px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.export();PlaySound(\'snd/tick.mp3\');">'+loc("Export")+'</a>'+
@@ -288,26 +365,82 @@ class GooglyMenu extends GooglyRenderer {
 			this.makeSelector(2)+
 			this.makeSelector(3)+
 			this.makeSelector(4)+
+			this.makeSelector(5)+
 			'</div>'+'',
 			[loc("Done")]
 		);
-		this.drawMenu(this.getSelectedIcons());
+		this.setSelectors();
+		this.drawMenu();
 	}
 	makeSelector(value) {
-		let text = this.getObjSlots(value)[this.slotIndex[value]].name;
+		let text;
+		if (value < 5) text = this.inventory.slot[value][this.slotIndex[value]].name;
+		else text = 'Wrinkler: ' + (this.slotIndex[5] + 1);
+		
 		return '<div style="clear:both;width:100%;margin-bottom:6px;"><a '+Game.clickStr+'="GW.menu.incrementSelector('+value+', -1)" id=" " class="framed smallFancyButton" style="float:left;margin-top:-4px;padding:2px 4px;">&lt;</a><div id="slot'+value+'" style="display:inline;">'+text+'</div><a '+Game.clickStr+'="GW.menu.incrementSelector('+value+', 1)" id=" " class="framed smallFancyButton" style="float:right;margin-top:-4px;padding:2px 4px;">&gt;</a></div>';
 	}
 	incrementSelector(value, amount) {
-		let arr = this.getObjSlots(value);
+		let arr = [];
+		if (value  < 5) arr = this.inventory.slot[value];
+		if (value == 5) arr = Game.wrinklers;
+
 		let index = this.slotIndex[value];
 		index += amount;
-
-		if (index < 0) index = arr.length-1;
-		if (index > arr.length-1) index = 0; 
-
-		l('slot'+value).innerHTML = arr[ index ].name;
-		this.slotIndex[value] = index;
-		this.drawMenu(this.getSelectedIcons());
+		// Single cosmetic
+		if (value < 5) {
+			// Roll over to start or end of list 
+			if (index < 0) index = arr.length-1;
+			if (index > arr.length-1) index = 0;
+			// Update slot index and HTML
+			this.slotIndex[value] = index;
+			// Update HTML
+			l('slot'+value).innerHTML = arr[index].name;
+			// Equip item
+			if (arr[index].name !== 'Blank') {
+				this.wrinkler.inventory.updateSlot(value, arr[index]);
+			} else {
+				this.wrinkler.inventory.clearSlot(value);
+			}
+		}
+		// Selecting wrinkler and applying cosmetics
+		if (value == 5) {
+			// Roll over to start or end of list 
+			if (index < 0) index = Game.getWrinklersMax()-1;
+			if (index > Game.getWrinklersMax()-1) index = 0;
+			// Update slot index and HTML
+			this.slotIndex[value] = index;
+			l('slot'+value).innerHTML = 'Wrinkler: ' + (this.slotIndex[5] + 1);
+			// Update inventory of template wrinkler to the selected wrinkler
+			this.wrinkler.inventory = Game.wrinklers[this.slotIndex[5]].inventory;
+			// Update text and index of selectors
+			this.setSelectors();
+		}
+		// Update canvas
+		this.drawMenu();
+	}
+	setSelectors() {
+		var inv = this.wrinkler.inventory.slot;
+		for (let i = 0; i < inv.length; i++) {
+			let names = this.getObjSlots(i).map(e => e.name);
+			let index;
+			try {
+				index = names.indexOf(inv[i].name);
+				if (index !== -1) {
+					this.slotIndex[i] = index;
+				}
+				l('slot'+i).innerHTML = inv[i].name;
+			} 
+			catch (error) {
+				if (GW.debug) console.log(inv[i]);
+			}
+		}
+	}
+	populateInventory() {
+		for (let i = 0; i < this.slotIndex.length-1; i++) {
+			this.inventory.slot[i] = this.getObjSlots(i);
+			// Add blank object at end of inventory
+			this.inventory.slot[i].push(GooglyObjects.blank);
+		}
 	}
 	getObjSlots(value) {
 		return Object.values(GooglyObjects).filter(obj => { return obj.slot === value });
@@ -315,21 +448,14 @@ class GooglyMenu extends GooglyRenderer {
 	getSelectedSlots() {
 		let slots = [];
 		for (let i = 0; i < this.slotIndex.length; i++) {
-			slots[i] = this.getObjSlots(i)[this.slotIndex[i]]
+			slots[i] = this.getObjSlots(i)[this.slotIndex[i]];
 		}
 		return slots;
-	}
-	getSelectedIcons() {
-		let icons = [];
-		for (let i = 0; i < this.slotIndex.length; i++) {
-			icons[i] = 'icon_' + this.getSelectedSlots()[i].img;
-		}
-		return icons;
 	}
 	getAllSlots() {
 		let slots = [];
 		for (let i = 0; i < this.slotIndex.length; i++) {
-			slots[i] = this.getObjSlots(i)
+			slots[i] = this.getObjSlots(i);
 		}
 		return slots;
 	}
@@ -343,10 +469,8 @@ class GooglyParticleSystem {
         this.particles = [];
     }
     run(ctx) {
-        // Loop through particles array
         for (let i = this.particles.length - 1; i >= 0; i--) {
             var p = this.particles[i];
-
             p.update();
             p.display(ctx);
         }
@@ -355,14 +479,14 @@ class GooglyParticleSystem {
         if (this.particles.length < this.max) {
             this.particles.push(p);
         } else {
-            // If particle limit reached increase speed in which particle dies
+            // If particle limit reached, increase speed in which particle dies
             this.particles[this.particles.length - 1].drain = 10;
             // Spawn new particle
             this.particles.push(p);
         }
     }
     removeParticle(p) {
-        // Remove particle from array when killed
+        // Remove particle from array
         let i = this.particles.indexOf(p);
         return this.particles.splice(i, 1);
     }
@@ -375,7 +499,6 @@ class GooglyParticleSystem {
 class GooglyParticle  {
     constructor(parent, img, obj) {
         this.parent = parent;
-        // this.id = id;
         this.img = img;
 		this.dir = new GooglyVector(Math.cos(obj.direction), Math.sin(obj.direction))
         this.pos = new GooglyVector(obj.x, obj.y);
@@ -394,7 +517,7 @@ class GooglyParticle  {
     update() {
 		this.vel.add(this.dir);
         this.pos.add(this.vel);
-		// Use delta time if using a higher framerate
+		// Use delta time to keep speed consistent
 		if (Game.mods['Smooth Render']) {
 			this.vel.dampen(this.friction * Game.fpsCoeff);
 			this.health -= this.drain * Game.fpsCoeff;
@@ -485,19 +608,23 @@ class GooglyInventory {
 	}
 	applyDefault() {
 		this.slot = [];
-		this.applyCosmetic('snorkel');
-		this.applyCosmetic('oxygen_tank');
+		this.wearOutfit('fancy', Game.wrinklers);
 	}
 	randomCosmetic() {
 		let cosmetics = Object.keys(GooglyObjects);
-		this.applyCosmetic(cosmetics[ Math.floor(Math.random() * (4 - cosmetics.length) + cosmetics.length) ])
+		this.applyCosmetic(cosmetics[ Math.floor(Math.random() * (3 - cosmetics.length) + cosmetics.length) ])
 	}
 	randomOutfit() {
 		let outfits = Object.keys(GooglyObjects.outfits);
 		this.wearOutfit(outfits[ Math.round(Math.random() * outfits.length-1) ])
 	}
 	wearOutfit(outfit, array) {
-		let fit = GooglyObjects.outfits[outfit];
+		let fit;
+		if (Array.isArray(outfit)) {
+			fit = outfit;
+		} else {
+			fit = GooglyObjects.outfits[outfit];
+		}
 		if (array) {
 			for (let i in array) {
 				array[i].inventory.slot = [];
@@ -518,16 +645,40 @@ class GooglyInventory {
 	getObjectSlot(value) {
 		return Object.values(GooglyObjects).filter(obj => { return obj.slot === value });
 	}
-	getObjectString(obj) {
-		return obj.img.replace('.png', '');
+	getObjectById(id) {
+		return this.slot.find(x => x.id === id)
 	}
-	save() {
-		return this.slot;
+	getObjectId(obj) {
+		return obj.id;
 	}
-	load(slot) {
-		for (let i = 0; i < slot.length; i++) {
-			if (slot[i] == undefined) this.slot[i] = GooglyObjects.blank;
-			this.slot[i] = slot[i];
+	getOutfit() {
+		let arr = [];
+		for (let i in this.slot) {
+			arr[i] = this.slot[i].id
+		}
+		return arr;
+	}
+	getAllOutfits() {
+		let arr = [];
+		for (let i in Game.wrinklers) {
+			arr[i] = Game.wrinklers[i].inventory.getOutfit();
+		}
+		return arr;
+	}
+	saveAll() {
+		return this.getAllOutfits();
+	}
+	loadAll(outfits) {
+		for (let i in Game.wrinklers) {
+			for (let j in outfits[i]) {
+				try {
+					if (outfits[i][j] !== undefined) Game.wrinklers[i].inventory.applyCosmetic(outfits[i][j]);
+				}
+				catch (error) {
+					Game.wrinklers[i].inventory.clearSlot(j);
+					if (GW.debug) console.warn('Could not find object: ' + outfits[i][j] + '. Cosmetic slot ' + j + ' cleared.');
+				}
+			}
 		}
 	}
 }
@@ -584,43 +735,51 @@ class GooglyCodeInjector {
 /*=====================================================================================
 // LAUNCH
 =======================================================================================*/
-Game.registerMod("Googly Wrinklers", {
+Game.registerMod(GW.name, {
 	init:function() {
-		GW = new GooglyRenderer();
-		// Create asset loader and assign additional classes
+		// Create new asset loader
+		// ------------------------------
 		GW.loader = new Loader();
 		GW.loader.domain = this.dir + '/img/';
 		GW.loader.Load(GooglyAssets);
 		// Assign additional classes
-		GW.menu 		= new GooglyMenu();
-		GW.inventory 	= new GooglyInventory();
-		GW.codeInjector = new GooglyCodeInjector();
+		// ------------------------------
+		GW.renderer  = new GooglyRenderer();
+		GW.menu 	 = new GooglyMenu();
+		GW.inventory = new GooglyInventory();
+		GW.injector  = new GooglyCodeInjector();
 		// Change wrinklers texture
+		// ------------------------------
 		Game.WINKLERS = 1;
-		// Insert GooglyRenderer draw functions at end of Game.DrawWrinklers
-		let ctx = Game.LeftBackground;
+		// Inject functions into the game
+		// ------------------------------
+		let ctx 	  = Game.LeftBackground;
 		let wrinklers = Game.wrinklers;
-		// Game.DrawWrinklers = GW.codeInjector.mergeFunctions(Game.DrawWrinklers, () => { GW.drawWrinklers(ctx, wrinklers) });
-		Game.DrawWrinklers = function() { GW.drawWrinklers(ctx, wrinklers) }
-		// Give wrinkler a random outfit when spawned
-		Game.SpawnWrinkler = GW.codeInjector.mergeFunctions((me) => { me.inventory.randomOutfit() }, Game.SpawnWrinkler);
+		Game.DrawWrinklers = function() { GW.renderer.drawWrinklers(ctx, wrinklers) };
+		Game.registerHook('draw',  function() { 
+			if (Game.elderWrath > 0) {
+				GW.menu.drawMenu();
+				GW.menu.drawIcon(ctx);
+				Game.specialTabs.push('wrinkler');
+			}
+		});
+		Game.registerHook('logic', function() { if (Game.elderWrath > 0) GW.menu.updateIcon(); })
+		// Game.SpawnWrinkler = GW.injector.mergeFunctions((me) => { me.inventory.randomOutfit() }, Game.SpawnWrinkler);
 	},
 	save:function() {
 		// Store inventory slots
-		let wrink = Game.wrinklers;
-		let slots = [];
-		for (let i in wrink) {
-			slots[i] = wrink[i].inventory.slot;
-		}
-		return JSON.stringify(slots);
+		let outfits = GW.inventory.getAllOutfits();
+		return JSON.stringify(outfits);
 	},
 	load:function(str) {
-		// Populate inventory from save data
-		let slots = JSON.parse(str);
+		// Store save data for debugging purposes
+		GW.saveData = str;
+		// Load cosmetic objects stored in sperate file
 		LoadScript(this.dir + '/GooglyObjects.js', () => {
-			for (let i in Game.wrinklers) {
-				Game.wrinklers[i].inventory.load(slots[i]);
-			}
+			// Load outfits from save data string
+			GW.inventory.loadAll(JSON.parse(GW.saveData));
+			// Populate menu inventory
+			GW.menu.populateInventory();
 		});
 	}
 })

@@ -22,9 +22,9 @@ const GooglyObjects = {
         ],
         detective: [
             'cigar', 
-            'moustache', 
+            'chevron', 
             'eyes', 
-            'sunglasses', 
+            'aviators', 
             'cowboy_hat'
         ],
         charro: [
@@ -34,9 +34,20 @@ const GooglyObjects = {
             'blank', 
             'sombrero'
         ],
+        clown: [
+            'tongue', 
+            'blank', 
+            'eyes', 
+            'clown_glasses', 
+            'clown_wig'
+        ]
     },
+    skins: [
+        'dark_winkler.png'
+    ],
     blank: {
         name: 'Blank',
+        id: 'blank',
         img: '',
         x: 0,
         y: 0,
@@ -45,18 +56,9 @@ const GooglyObjects = {
         rotation: 0,
         size: 0
     },
-    eyes_icon: {
-        name: 'Googly Eyes',
-        img: 'eyes.png',
-        slot: 2,
-        size: 15,
-        scale: 1,
-        outline_color: '#f66',
-        outer_color:   'white',
-        inner_color:   'black'
-    },
     eyes: {
         name: 'Googly Eyes',
+        id: 'eyes',
         img: 'eyes.png',
         slot: 2,
         size: 15,
@@ -67,6 +69,7 @@ const GooglyObjects = {
     },
     monocle: {
         name: 'Monocle',
+        id: 'monocle',
         img: 'monocle.png',
         slot: 3,
         x:-21,
@@ -78,6 +81,7 @@ const GooglyObjects = {
     },
     sunglasses: {
         name: 'Sunglasses',
+        id: 'sunglasses',
         img: 'sunglasses.png',
         slot: 3,
         x:  0,
@@ -89,6 +93,7 @@ const GooglyObjects = {
     },
     glasses: {
         name: 'Glasses',
+        id: 'glasses',
         img: 'glasses.png',
         slot: 3,
         x:  0,
@@ -98,8 +103,33 @@ const GooglyObjects = {
         rotation: 180,
         size: 80
     },
+    aviators: {
+        name: 'Aviators',
+        id: 'aviators',
+        img: 'aviators.png',
+        slot: 3,
+        x:  0,
+        y: 25.5,
+        wobble_x: 0,
+        wobble_y: 0,
+        rotation: 180,
+        size: 80
+    },
+    clown_glasses: {
+        name: 'Clown Glasses',
+        id: 'clown_glasses',
+        img: 'clown_glasses.png',
+        slot: 3,
+        x:  0,
+        y: 25,
+        wobble_x: 1,
+        wobble_y:-1,
+        rotation: 180,
+        size: 80
+    },
     snorkel: {
         name: 'Snorkel',
+        id: 'snorkel',
         img: 'snorkel.png',
         slot: 3,
         x: -3,
@@ -122,7 +152,20 @@ const GooglyObjects = {
     },
     moustache: {
         name: 'Moustache',
+        id: 'moustache',
         img: 'moustache.png',
+        slot: 1,
+        x: 0,
+        y: 7,
+        wobble_x: 0,
+        wobble_y: 2,
+        rotation: 180,
+        size: 45
+    },
+    chevron: {
+        name: 'Chevron',
+        id: 'chevron',
+        img: 'chevron.png',
         slot: 1,
         x: 0,
         y: 7,
@@ -133,6 +176,7 @@ const GooglyObjects = {
     },
     tongue: {
         name: 'Tongue',
+        id: 'tongue',
         img: 'tongue.png',
         slot: 0,
         x:-14,
@@ -144,6 +188,7 @@ const GooglyObjects = {
     },
     cigar: {
         name: 'Cigar',
+        id: 'cigar',
         img: 'cigar.png',
         slot: 0,
         x:  0,
@@ -166,6 +211,7 @@ const GooglyObjects = {
     },
     pipe : {
         name: 'Pipe',
+        id: 'pipe',
         img: 'pipe.png',
         slot: 0,
         x: 25,
@@ -188,17 +234,19 @@ const GooglyObjects = {
     },
     cowboy_hat: {
         name: 'Cowboy Hat',
+        id: 'cowboy_hat',
         img: 'cowboy_hat.png',
         slot: 4,
         x: 0,
-        y: 66,
+        y: 64,
         wobble_x: 1,
         wobble_y: 2,
         rotation: 180,
-        size: 80
+        size: 86
     },
     top_hat: {
         name: 'Top Hat',
+        id: 'top_hat',
         img: 'top_hat.png',
         slot: 4,
         x: 0,
@@ -210,6 +258,7 @@ const GooglyObjects = {
     },
     sombrero: {
         name: 'Sombrero',
+        id: 'sombrero',
         img: 'sombrero.png',
         slot: 4,
         x: 0,
@@ -219,11 +268,24 @@ const GooglyObjects = {
         rotation: 180,
         size: 115
     },
-    hair01: {
-        name: 'Hair 01',
-        img: 'hair01.png',
+    clown_wig: {
+        name: 'Clown Wig',
+        id: 'clown_wig',
+        img: 'clown_wig.png',
         slot: 4,
         x: 0,
+        y: 70,
+        wobble_x: 2,
+        wobble_y: 5,
+        rotation: 180,
+        size: 110
+    },
+    hair01: {
+        name: 'Hair 01',
+        id: 'hair01',
+        img: 'hair01.png',
+        slot: 4,
+        x: -2,
         y: 55,
         wobble_x: 1,
         wobble_y: 2,
@@ -232,6 +294,7 @@ const GooglyObjects = {
     },
     oxygen_tank: {
         name: 'Oxygen Tank',
+        id: 'oxygen_tank',
         img: 'oxygen_tank.png',
         slot: 4,
         x: 0,
@@ -241,4 +304,7 @@ const GooglyObjects = {
         rotation: 180,
         size: 95
     },
+    getAllObjects:function() {
+        return Object.keys(GooglyObjects).map(function(k) { return GooglyObjects[k] })
+    }
 }
