@@ -283,6 +283,7 @@ class GooglyMenu extends GooglyRenderer {
 	updateIcon() {
 		if (this.icon.selected && Game.CanClick) {
 			if (Game.Click && Game.lastClickedEl==l('backgroundLeftCanvas')) {
+				PlaySound('snd/tick.mp3');
 				this.show();
 				Game.Click = 0;
 			}
@@ -290,13 +291,8 @@ class GooglyMenu extends GooglyRenderer {
 	}
 	drawIcon(ctx) {
 		let me = this.icon;
+		let rect = { w: me.w, h: me.h, r: 0, o: 24 };
 		me.y = ctx.canvas.height - (Game.specialTabs.length*48) - 72;
-		let rect = {
-			w: me.w,
-			h: me.h,
-			r: 0,
-			o: 24
-		};
 
 		if (ctx && this.inRect(Game.mouseX - me.x,Game.mouseY - me.y, rect)) {
 
@@ -322,9 +318,7 @@ class GooglyMenu extends GooglyRenderer {
 		if (!l('wrinklerPreview')) return false;
 		let ctx = l('wrinklerPreview').getContext('2d');
 		ctx.clearRect(0, 0, 100, 220);
-
 		let me = Game.wrinklers[0];
-
 		/* ctx.save();
 		ctx.globalAlpha = 0.5;
 		ctx.fillStyle = 'hsl(0, 100.00%, 50.00%)';
@@ -340,7 +334,6 @@ class GooglyMenu extends GooglyRenderer {
 			this.getWobble(this.wrinkler, me).h + 120
 		);
 		// ctx.restore();
-
 		ctx.save();
 		this.translateToWrinkler(ctx, this.wrinkler);
 		this.drawCosmetics(ctx, this.wrinkler, 2);
@@ -661,6 +654,9 @@ class GooglyInventory {
 	getAllOutfits() {
 		let arr = [];
 		for (let i in Game.wrinklers) {
+			if (Game.wrinklers[i].inventory.slot.undefined) {
+				delete Game.wrinklers[i].inventory.slot.undefined;
+			}
 			arr[i] = Game.wrinklers[i].inventory.getOutfit();
 		}
 		return arr;
@@ -753,13 +749,11 @@ Game.registerMod(GW.name, {
 		Game.WINKLERS = 1;
 		// Inject functions into the game
 		// ------------------------------
-		let ctx 	  = Game.LeftBackground;
-		let wrinklers = Game.wrinklers;
-		Game.DrawWrinklers = function() { GW.renderer.drawWrinklers(ctx, wrinklers) };
+		Game.DrawWrinklers = function() { GW.renderer.drawWrinklers(Game.LeftBackground, Game.wrinklers) };
 		Game.registerHook('draw',  function() { 
 			if (Game.elderWrath > 0) {
 				GW.menu.drawMenu();
-				GW.menu.drawIcon(ctx);
+				GW.menu.drawIcon(Game.LeftBackground);
 				Game.specialTabs.push('wrinkler');
 			}
 		});
@@ -768,15 +762,17 @@ Game.registerMod(GW.name, {
 	},
 	save:function() {
 		// Store inventory slots
-		let outfits = GW.inventory.getAllOutfits();
-		return JSON.stringify(outfits);
+		if (Game.elderWrath > 0) {
+			let outfits = GW.inventory.getAllOutfits();
+			return JSON.stringify(outfits);
+		}
 	},
 	load:function(str) {
 		// Store save data for debugging purposes
 		GW.saveData = str;
 		// Load cosmetic objects stored in sperate file
 		LoadScript(this.dir + '/GooglyObjects.js', () => {
-			// Load outfits from save data string
+			// Load outfits from save data and apply to wrinklers
 			GW.inventory.loadAll(JSON.parse(GW.saveData));
 			// Populate menu inventory
 			GW.menu.populateInventory();

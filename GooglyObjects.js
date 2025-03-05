@@ -21,6 +21,13 @@ const GooglyObjects = {
             'oxygen_tank'
         ],
         detective: [
+            'blank', 
+            'chevron', 
+            'eyes', 
+            'glasses', 
+            'hair01'
+        ],
+        sheriff: [
             'cigar', 
             'chevron', 
             'eyes', 
