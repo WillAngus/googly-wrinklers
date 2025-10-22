@@ -5,8 +5,10 @@
 	"Description": "Gives wrinklers customizable cosmetics and moving googly eyes!",
 	"ModVersion": 1.000,
 	"GameVersion": 2.052,
-	"Date": "24/12/2024",
-	"Dependencies": [],
+	"Date": "22/10/2025",
+	"Dependencies": [
+		"CCSE"
+	],
 	"Disabled": 0,
 	"AllowSteamAchievs": 1
 }

@@ -13,7 +13,7 @@ class GooglyRenderer {
 		for (let i in Game.wrinklers) {
 			Game.wrinklers[i].inventory 	 = new GooglyInventory();
 			Game.wrinklers[i].particleSystem = new GooglyParticleSystem(500);
-			Game.wrinklers[i].img			 = 'winkler.png';
+			Game.wrinklers[i].img 			 = 'winkler.png';
 			Game.wrinklers[i].skin 			 = 'winkler.png';
 		}
 	}
@@ -346,8 +346,6 @@ class GooglyMenu extends GooglyRenderer {
 			'<id CustomizeYou><h3>'+loc("Customize Wrinklers")+'</h3>'+
 			'<div class="block" style="text-align:center;font-size:11px;">'+loc("Spawn of the Grandmapocalypse. Shape them as you desire.")+'</div>'+
 			'<div class="block" style="position:relative;">'+
-			'<a style="position:absolute;left:4px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.import();PlaySound(\'snd/tick.mp3\');">'+loc("Import")+'</a>'+
-			'<a style="position:absolute;right:0px;top:2px;font-size:10px;padding:2px 6px;" class="option" onclick="Game.YouCustomizer.export();PlaySound(\'snd/tick.mp3\');">'+loc("Export")+'</a>'+
 			'<div style="position:relative;width:64px;height:200px;margin:0px auto 8px auto;">'+
 			'<canvas style="transform:scale(1);position:absolute;left: -16px; top: -10px;" width=100 height=220 id="wrinklerPreview"></canvas>'+
 			'</div>'+
@@ -733,49 +731,57 @@ class GooglyCodeInjector {
 =======================================================================================*/
 Game.registerMod(GW.name, {
 	init:function() {
-		// Create new asset loader
-		// ------------------------------
-		GW.loader = new Loader();
-		GW.loader.domain = this.dir + '/img/';
-		GW.loader.Load(GooglyAssets);
-		// Assign additional classes
-		// ------------------------------
-		GW.renderer  = new GooglyRenderer();
-		GW.menu 	 = new GooglyMenu();
-		GW.inventory = new GooglyInventory();
-		GW.injector  = new GooglyCodeInjector();
-		// Change wrinklers texture
-		// ------------------------------
-		Game.WINKLERS = 1;
-		// Inject functions into the game
-		// ------------------------------
-		Game.DrawWrinklers = function() { GW.renderer.drawWrinklers(Game.LeftBackground, Game.wrinklers) };
-		Game.registerHook('draw',  function() { 
-			if (Game.elderWrath > 0) {
-				GW.menu.drawMenu();
-				GW.menu.drawIcon(Game.LeftBackground);
-				Game.specialTabs.push('wrinkler');
-			}
-		});
-		Game.registerHook('logic', function() { if (Game.elderWrath > 0) GW.menu.updateIcon(); })
-		// Game.SpawnWrinkler = GW.injector.mergeFunctions((me) => { me.inventory.randomOutfit() }, Game.SpawnWrinkler);
+		if (typeof CCSE !== 'undefined') {
+			// Create new asset loader
+			// ------------------------------
+			GW.loader = new Loader();
+			GW.loader.domain = this.dir + '/img/';
+			GW.loader.Load(GooglyAssets);
+			// Assign additional classes
+			// ------------------------------
+			GW.renderer  = new GooglyRenderer();
+			GW.menu 	 = new GooglyMenu();
+			GW.inventory = new GooglyInventory();
+			GW.injector  = new GooglyCodeInjector();
+			// Change wrinklers texture
+			// ------------------------------
+			Game.WINKLERS = 1;
+			// Inject functions into the game
+			// ------------------------------
+			Game.DrawWrinklers = function() { GW.renderer.drawWrinklers(Game.LeftBackground, Game.wrinklers) };
+			Game.registerHook('draw',  function() { 
+				if (Game.elderWrath > 0) {
+					GW.menu.drawMenu();
+					GW.menu.drawIcon(Game.LeftBackground);
+					Game.specialTabs.push('wrinkler');
+				}
+			});
+			Game.registerHook('logic', function() { if (Game.elderWrath > 0) GW.menu.updateIcon(); })
+			// Game.SpawnWrinkler = GW.injector.mergeFunctions((me) => { me.inventory.randomOutfit() }, Game.SpawnWrinkler);
+		} else {
+			console.warn('Please install "CCSE" from the steam workshop.');
+		}
 	},
 	save:function() {
-		// Store inventory slots
-		if (Game.elderWrath > 0) {
-			let outfits = GW.inventory.getAllOutfits();
-			return JSON.stringify(outfits);
+		if (typeof CCSE !== 'undefined') {
+			// Store inventory slots
+			if (Game.elderWrath > 0) {
+				let outfits = GW.inventory.getAllOutfits();
+				return JSON.stringify(outfits);
+			}
 		}
 	},
 	load:function(str) {
-		// Store save data for debugging purposes
-		GW.saveData = str;
-		// Load cosmetic objects stored in sperate file
-		LoadScript(this.dir + '/GooglyObjects.js', () => {
-			// Load outfits from save data and apply to wrinklers
-			GW.inventory.loadAll(JSON.parse(GW.saveData));
-			// Populate menu inventory
-			GW.menu.populateInventory();
-		});
+		if (typeof CCSE !== 'undefined') { 
+			// Store save data for debugging purposes
+			GW.saveData = str;
+			// Load cosmetic objects stored in sperate file
+			LoadScript(this.dir + '/GooglyObjects.js', () => {
+				// Load outfits from save data and apply to wrinklers
+				GW.inventory.loadAll(JSON.parse(GW.saveData));
+				// Populate menu inventory
+				GW.menu.populateInventory();
+			});
+		}
 	}
 })
