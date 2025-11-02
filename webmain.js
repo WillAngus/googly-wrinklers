@@ -1,4 +1,6 @@
 
+(function() {
+
 var GW = {
 	name: 	 'Googly Wrinklers',
 	version: '1.000',
@@ -1094,3 +1096,5 @@ Game.registerMod(GW.name, {
         GW.menu.populateInventory();
 	}
 })
+
+})();
