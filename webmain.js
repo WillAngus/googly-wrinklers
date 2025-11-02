@@ -1,19 +1,19 @@
 
 (function() {
 
-var GW = {
+window.GW = {
 	name: 	 'Googly Wrinklers',
 	version: '1.000',
 	debug:	  true,
 };
-var GooglyAssets = ['icon_winkler.png', 'icon_wrinkler.png', 'icon_special.png', 'tongue.png', 'cigar.png', 'cowboy_hat.png', 'eyes.png', 'aviators.png', 'bubble.png', 'chevron.png', 'cigar.png', 'clown_glasses.png', 'clown_wig.png', 'cowboy_hat.png', 'dark_winkler.png', 'droplets.png', 'eyebrows.png', 'eyes.png', 'glasses.png', 'hair01.png', 'lips.png', 'monocle.png', 'moustache.png', 'oxygen_tank.png', 'pipe.png', 'shinyWinkler.png', 'shinyWrinkler.png', 'smoke.png', 'snorkel.png', 'sombrero.png', 'sunglasses.png', 'tongue.png', 'top_hat.png', 'winkler.png', 'winterWinkler.png', 'winterWrinkler.png', 'wrinkler.png', 'wrinklerShadow.png'];
+window.GooglyAssets = ['icon_winkler.png', 'icon_wrinkler.png', 'icon_special.png', 'tongue.png', 'cigar.png', 'cowboy_hat.png', 'eyes.png', 'aviators.png', 'bubble.png', 'chevron.png', 'cigar.png', 'clown_glasses.png', 'clown_wig.png', 'cowboy_hat.png', 'dark_winkler.png', 'droplets.png', 'eyebrows.png', 'eyes.png', 'glasses.png', 'hair01.png', 'lips.png', 'monocle.png', 'moustache.png', 'oxygen_tank.png', 'pipe.png', 'shinyWinkler.png', 'shinyWrinkler.png', 'smoke.png', 'snorkel.png', 'sombrero.png', 'sunglasses.png', 'tongue.png', 'top_hat.png', 'winkler.png', 'winterWinkler.png', 'winterWrinkler.png', 'wrinkler.png', 'wrinklerShadow.png'];
 /*=====================================================================================
 // OBJECTS
 ---------------------------------------------------------------------------------------
     Here are all the cosmetics for the Wrinklers. Image file name must be 
     the same as its object. Name can be anything, doesn't have to match.
 =======================================================================================*/
-const GooglyObjects = {
+window.GooglyObjects = {
     outfits: {
         fancy: [
             'pipe', 
