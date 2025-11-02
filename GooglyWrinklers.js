@@ -1,10 +1,11 @@
-
 (function() {
 
 window.GW = {
-	name: 	 'Googly Wrinklers',
+	name: 	 'GooglyWrinklers',
 	version: '1.000',
 	debug:	  true,
+	web: 	  true,
+	dir: 	 'https://willangus.github.io/googly-wrinklers'
 };
 window.GooglyAssets = ['icon_winkler.png', 'icon_wrinkler.png', 'icon_special.png', 'tongue.png', 'cigar.png', 'cowboy_hat.png', 'eyes.png', 'aviators.png', 'bubble.png', 'chevron.png', 'cigar.png', 'clown_glasses.png', 'clown_wig.png', 'cowboy_hat.png', 'dark_winkler.png', 'droplets.png', 'eyebrows.png', 'eyes.png', 'glasses.png', 'hair01.png', 'lips.png', 'monocle.png', 'moustache.png', 'oxygen_tank.png', 'pipe.png', 'shinyWinkler.png', 'shinyWrinkler.png', 'smoke.png', 'snorkel.png', 'sombrero.png', 'sunglasses.png', 'tongue.png', 'top_hat.png', 'winkler.png', 'winterWinkler.png', 'winterWrinkler.png', 'wrinkler.png', 'wrinklerShadow.png'];
 /*=====================================================================================
@@ -1053,7 +1054,7 @@ Game.registerMod(GW.name, {
         // Create new asset loader
         // ------------------------------
         GW.loader = new Loader();
-        GW.loader.domain = 'https://raw.githubusercontent.com/WillAngus/googly-wrinklers/refs/heads/main' + '/img/';
+        GW.loader.domain = GW.dir + '/img/';
         GW.loader.Load(GooglyAssets);
         // Assign additional classes
         // ------------------------------
